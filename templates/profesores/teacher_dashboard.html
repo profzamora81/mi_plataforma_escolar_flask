@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>Bienvenido, Profesor {{ profesor.first_name }} {{ profesor.last_name }}</h1>
+    <h2>Tus Asignaturas Asignadas:</h2>
+    {% if asignaturas %}
+        <ul>
+            {% for asignatura in asignaturas %}
+                <li>
+                    {{ asignatura.name }} ({{ asignatura.code }}) - Nivel(es): 
+                    {% for level in asignatura.grade_levels %}
+                        {{ level.name }}{% if not loop.last %}, {% endif %}
+                    {% endfor %}
+                    {# Aquí iría el enlace para gestionar notas de esta asignatura #}
+                    - <a href="#">Gestionar Notas</a>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No tienes asignaturas asignadas aún.</p>
+    {% endif %}
+{% endblock %}

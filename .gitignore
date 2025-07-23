@@ -1,0 +1,31 @@
+# Directorios del entorno virtual
+venv/
+env/
+
+# Archivos de la base de datos
+*.db
+*.sqlite
+*.sqlite3
+
+# Archivos de Python generados automáticamente
+__pycache__/
+*.pyc
+*.pyd
+*.egg-info/
+.Python/
+
+# Archivos de configuración y logs sensibles
+.flaskenv
+.env
+instance/
+tmp/
+logs/
+*.log
+
+# Archivos específicos de sistemas operativos
+.DS_Store # macOS
+Thumbs.db # Windows
+
+# Archivos de IDEs comunes
+.vscode/ # Para VS Code
+.idea/   # Para PyCharm

@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>Asignaturas de {{ profesor.first_name }} {{ profesor.last_name }}</h1>
+    {% if asignaturas %}
+        <ul>
+            {% for asignatura in asignaturas %}
+                <li>{{ asignatura.name }} ({{ asignatura.code }}) - {{ asignatura.description }}</li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>{{ profesor.first_name }} no tiene asignaturas asignadas.</p>
+    {% endif %}
+    <p><a href="{{ url_for('listar_profesores') }}">Volver a la lista de profesores</a></p>
+{% endblock %}

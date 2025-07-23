@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }} - Mi Plataforma Escolar Flask</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <header>
+        <nav>
+            <ul>
+                <li><a href="{{ url_for('home') }}">Inicio</a></li>
+                <li><a href="{{ url_for('about') }}">Acerca de</a></li>
+                
+                {% if current_user.is_authenticated %}
+                    {% if current_user.role == 'Administrador' %}
+                        <li><a href="{{ url_for('admin_list_subjects') }}">Gestión Asignaturas (Admin)</a></li>
+                        <li><a href="{{ url_for('admin_create_subject') }}">Crear Asignatura (Admin)</a></li>
+                        <li><a href="{{ url_for('listar_profesores') }}">Profesores (Lista Pública)</a></li> {# El admin puede ver esta lista #}
+                        {# Aquí irían más enlaces de admin, como gestión de usuarios #}
+                    {% elif current_user.role == 'Profesor' %}
+                        <li><a href="{{ url_for('teacher_dashboard') }}">Mi Dashboard</a></li>
+                        {# Aquí irían enlaces para gestionar notas de sus asignaturas #}
+                    {% elif current_user.role == 'Estudiante' %}
+                        <li><a href="{{ url_for('student_dashboard') }}">Mis Notas</a></li>
+                    {% endif %}
+                    <li><a href="{{ url_for('logout') }}">Cerrar Sesión ({{ current_user.username }})</a></li>
+                {% else %}
+                    <li><a href="{{ url_for('login') }}">Iniciar Sesión</a></li>
+                    <li><a href="{{ url_for('register') }}">Registrar</a></li>
+                {% endif %}
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer>
+        <p>&copy; {{ current_year }} Mi Plataforma Escolar Flask</p>
+    </footer>
+    
+</body>
+</html>

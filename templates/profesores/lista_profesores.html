@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>Lista de Profesores</h1>
+    {% if profesores %}
+        <ul>
+            {% for profesor in profesores %}
+                <li>
+                    <a href="{{ url_for('asignaturas_profesor', user_id=profesor.id) }}">
+                        {{ profesor.first_name }} {{ profesor.last_name }} ({{ profesor.username }})
+                    </a>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No hay profesores registrados aún.</p>
+    {% endif %}
+{% endblock %}

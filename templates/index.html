@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>Bienvenido a la Plataforma Escolar</h1>
+    <p>Esta es tu aplicación escolar construida con Flask.</p>
+    <p>Empieza explorando la <a href="{{ url_for('listar_profesores') }}">lista de profesores</a>.</p>
+{% endblock %}
