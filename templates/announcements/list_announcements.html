@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>{{ title }}</h1>
+    <p><a href="{{ url_for('admin_create_announcement') }}">Publicar Nuevo Anuncio</a></p>
+
+    {% if announcements %}
+        <table border="1" style="width:100%; border-collapse: collapse;">
+            <thead>
+                <tr style="background-color:#f2f2f2;">
+                    <th style="padding: 8px; text-align: left;">Título</th>
+                    <th style="padding: 8px; text-align: left;">Publicado por</th>
+                    <th style="padding: 8px; text-align: left;">Fecha</th>
+                    <th style="padding: 8px; text-align: left;">Dirigido a</th>
+                    <th style="padding: 8px; text-align: left;">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for announcement in announcements %}
+                    <tr>
+                        <td style="padding: 8px;">{{ announcement.title }}</td>
+                        <td style="padding: 8px;">{{ announcement.user.first_name }} {{ announcement.user.last_name }}</td>
+                        <td style="padding: 8px;">{{ announcement.date_posted.strftime('%d/%m/%Y %H:%M') }}</td>
+                        <td style="padding: 8px;">{{ announcement.target_role }}</td>
+                        <td style="padding: 8px;">
+                            {# Más adelante, podremos añadir rutas para editar y eliminar #}
+                            <a href="#">Editar</a> | <a href="#">Eliminar</a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No hay anuncios publicados.</p>
+    {% endif %}
+{% endblock %}

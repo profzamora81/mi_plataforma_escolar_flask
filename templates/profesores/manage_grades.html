@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>Notas de {{ subject.name }} ({{ subject.code }})</h1>
+    <p>Profesor: {{ subject.teacher_obj.first_name }} {{ subject.teacher_obj.last_name }}</p>
+    <p>Niveles: 
+        {% for level in subject.grade_levels %}
+            {{ level.name }}{% if not loop.last %}, {% endif %}
+        {% endfor %}
+    </p>
+
+    <hr>
+    <h3>Resumen de Notas por Estudiante:</h3>
+    <a href="{{ url_for('teacher_add_grade', subject_id=subject.id) }}" class="button">Añadir Nueva Nota</a>
+    <br><br>
+
+    {% if grades_by_student %}
+        {% for student_id, data in grades_by_student.items() %}
+            <h4>{{ data.student_obj.first_name }} {{ data.student_obj.last_name }} ({{ data.student_obj.username }})</h4>
+            <table border="1" style="width:100%; border-collapse: collapse; margin-bottom: 20px;">
+                <thead>
+                    <tr style="background-color:#f9f9f9;">
+                        <th style="padding: 8px; text-align: left;">Bimestre/Período</th>
+                        <th style="padding: 8px; text-align: left;">Nota</th>
+                        <th style="padding: 8px; text-align: left;">Fecha Registro</th>
+                        <th style="padding: 8px; text-align: left;">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for grade in data.grades | sort(attribute='bimestre') %} {# Ordenar por bimestre si los nombres son consistentes #}
+                        <tr>
+                            <td style="padding: 8px;">{{ grade.bimestre }}</td>
+                            <td style="padding: 8px;">{{ grade.value }}</td>
+                            <td style="padding: 8px;">{{ grade.date_recorded.strftime('%d/%m/%Y %H:%M') }}</td>
+                            <td style="padding: 8px;">
+                                <a href="{{ url_for('teacher_edit_grade', grade_id=grade.id) }}">Editar</a> |
+                                <form action="{{ url_for('teacher_delete_grade', grade_id=grade.id) }}" method="POST" style="display:inline;">
+                                    <button type="submit" onclick="return confirm('¿Estás seguro de que quieres eliminar esta nota?');" style="background: none; border: none; color: blue; cursor: pointer; text-decoration: underline; padding: 0;">Eliminar</button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% endfor %}
+    {% else %}
+        <p>No hay notas registradas para esta asignatura todavía.</p>
+        <p>Utiliza el botón "Añadir Nueva Nota" para empezar.</p>
+    {% endif %}
+
+    <p><a href="{{ url_for('teacher_dashboard') }}">Volver al Dashboard del Profesor</a></p>
+{% endblock %}

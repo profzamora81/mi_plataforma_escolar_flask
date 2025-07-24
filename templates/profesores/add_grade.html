@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>Añadir Nota a {{ subject.name }}</h1>
+    <form method="POST" action="">
+        {{ form.hidden_tag() }}
+        <p>
+            {{ form.student.label }}<br>
+            {{ form.student() }}<br>
+            {% for error in form.student.errors %}
+                <span style="color: red;">{{ error }}</span><br>
+            {% endfor %}
+        </p>
+        <p>
+            {{ form.value.label }}<br>
+            {{ form.value(size=10) }}<br>
+            {% for error in form.value.errors %}
+                <span style="color: red;">{{ error }}</span><br>
+            {% endfor %}
+        </p>
+        <p>
+            {{ form.bimestre.label }}<br>
+            {{ form.bimestre() }}<br>
+            {% for error in form.bimestre.errors %}
+                <span style="color: red;">{{ error }}</span><br>
+            {% endfor %}
+        </p>
+        <p>{{ form.submit() }}</p>
+    </form>
+    <p><a href="{{ url_for('teacher_manage_grades', subject_id=subject.id) }}">Cancelar y Volver</a></p>
+{% endblock %}

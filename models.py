@@ -65,4 +65,45 @@ class Subject(db.Model):
     def __repr__(self):
         return f"<Subject {self.name} ({self.code})>"
 
-# Aquí se pueden añadir más modelos (Course, Attendance, Grades, etc.)
+# --- Nuevo Modelo: Grade (Nota/Calificación) ---
+class Grade(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    
+    # Claves foráneas para relacionar con Estudiante y Asignatura
+    student_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    subject_id = db.Column(db.Integer, db.ForeignKey('subject.id'), nullable=False)
+    
+    value = db.Column(db.Float, nullable=False) # El valor de la nota (e.g., 85.5, 90.0)
+    
+    # Campo para identificar el bimestre/período
+    # Podrías tener un modelo 'Bimester' si necesitas más detalles sobre los bimestres.
+    # Por ahora, un simple String para el nombre del bimestre (e.g., "Bimestre 1", "Primer Parcial")
+    bimestre = db.Column(db.String(50), nullable=False, default='Bimestre 1') 
+    
+    date_recorded = db.Column(db.DateTime, default=datetime.utcnow) # Fecha de registro de la nota
+
+    # Relaciones para facilitar el acceso
+    # Una nota pertenece a un estudiante
+    student = db.relationship('User', backref='grades', lazy=True, primaryjoin='Grade.student_id == User.id')
+    # Una nota pertenece a una asignatura
+    subject = db.relationship('Subject', backref='grades', lazy=True)
+
+    def __repr__(self):
+        return f"<Grade {self.value} for {self.student.username} in {self.subject.name} ({self.bimestre})>"
+    
+class Announcement(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(100), nullable=False)
+    content = db.Column(db.Text, nullable=False)
+    date_posted = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    
+    # Quién publica el anuncio (Admin o Profesor)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    user = db.relationship('User', backref='announcements', lazy=True)
+    
+    # Opcional: Para qué rol(es) es este anuncio (e.g., 'Estudiante', 'Profesor', 'Todos')
+    target_role = db.Column(db.String(20), nullable=False, default='Todos') 
+    # Podrías expandir esto a una relación many-to-many si quieres más granularidad (múltiples roles)
+
+    def __repr__(self):
+        return f"Announcement('{self.title}', '{self.date_posted}', '{self.target_role}')"

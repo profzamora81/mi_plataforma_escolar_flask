@@ -1,8 +1,72 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <h1>Bienvenido, Estudiante {{ current_user.first_name }} {{ current_user.last_name }}</h1>
-    <h2>Tus Notas:</h2>
-    <p>Aquí se mostrarán tus notas al final del bimestre.</p>
-    <p>Esta sección está en desarrollo.</p>
+    <h1>Bienvenido, Estudiante {{ estudiante.first_name }} {{ estudiante.last_name }}</h1>
+
+    {% if overall_average_grade > 0 %}
+        <p><strong>Tu Promedio General de Notas: {{ "%.2f"|format(overall_average_grade) }}</strong></p>
+    {% else %}
+        <p>Aún no tienes notas registradas para calcular un promedio general.</p>
+    {% endif %}
+
+    <h2>Anuncios Importantes:</h2>
+    {% if relevant_announcements %}
+        <div style="border: 1px solid #ccc; padding: 15px; border-radius: 5px; background-color: #f9f9f9;">
+            {% for announcement in relevant_announcements %}
+                <div style="margin-bottom: 15px; border-bottom: 1px dashed #eee; padding-bottom: 10px;">
+                    <h3>{{ announcement.title }}</h3>
+                    <p>{{ announcement.content }}</p>
+                    <small>Publicado por {{ announcement.user.first_name }} {{ announcement.user.last_name }} el {{ announcement.date_posted.strftime('%d/%m/%Y a las %H:%M') }}</small>
+                    {% if not loop.last %} {# No añadir línea divisoria después del último anuncio #}
+                        <hr style="border-top: 1px solid #eee;">
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p>No hay anuncios importantes para ti en este momento.</p>
+    {% endif %}
+
+    <h2>Tus Asignaturas con Notas:</h2>
+
+    {% if subjects_data %} {# ¡Esta es la condición que estamos depurando! #}
+        <table border="1" style="width:100%; border-collapse: collapse;">
+            <thead>
+                <tr style="background-color:#f2f2f2;">
+                    <th style="padding: 8px; text-align: left;">Asignatura</th>
+                    <th style="padding: 8px; text-align: left;">Código</th>
+                    <th style="padding: 8px; text-align: left;">Profesor</th>
+                    <th style="padding: 8px; text-align: left;">Promedio de Notas</th>
+                    <th style="padding: 8px; text-align: left;">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in subjects_data %}
+                    <tr>
+                        <td style="padding: 8px;">{{ item.subject_obj.name }}</td>
+                        <td style="padding: 8px;">{{ item.subject_obj.code }}</td>
+                        <td style="padding: 8px;">
+                            {% if item.subject_obj.teacher_obj %}
+                                {{ item.subject_obj.teacher_obj.first_name }} {{ item.subject_obj.teacher_obj.last_name }}
+                            {% else %}
+                                Sin Asignar
+                            {% endif %}
+                        </td>
+                        <td style="padding: 8px;">
+                            {% if item.average_grade is not none and item.average_grade > 0 %}
+                                {{ "%.2f"|format(item.average_grade) }}
+                            {% else %}
+                                N/A
+                            {% endif %}
+                        </td>
+                        <td style="padding: 8px;">
+                            <a href="{{ url_for('student_view_grades', subject_id=item.subject_obj.id) }}">Ver Mis Notas</a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>Aún no tienes notas registradas en ninguna asignatura.</p>
+    {% endif %}
 {% endblock %}

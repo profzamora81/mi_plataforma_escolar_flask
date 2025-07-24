@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>Editar Nota de {{ grade.student.first_name }} {{ grade.student.last_name }} en {{ grade.subject.name }} ({{ grade.bimestre }})</h1>
+    <form method="POST" action="">
+        {{ form.hidden_tag() }}
+        <p>
+            {{ form.student.label }}<br>
+            {{ form.student() }}<br>
+            {# En edición, el estudiante y bimestre suelen estar deshabilitados #}
+        </p>
+        <p>
+            {{ form.bimestre.label }}<br>
+            {{ form.bimestre() }}<br>
+        </p>
+        <p>
+            {{ form.value.label }}<br>
+            {{ form.value(size=10) }}<br>
+            {% for error in form.value.errors %}
+                <span style="color: red;">{{ error }}</span><br>
+            {% endfor %}
+        </p>
+        <p>{{ form.submit(value='Actualizar Nota') }}</p>
+    </form>
+    <p><a href="{{ url_for('teacher_manage_grades', subject_id=grade.subject.id) }}">Cancelar y Volver</a></p>
+{% endblock %}

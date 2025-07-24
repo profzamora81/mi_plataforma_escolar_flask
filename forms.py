@@ -1,7 +1,7 @@
 # forms.py
 
 from flask_wtf import FlaskForm
-from wtforms import StringField, TextAreaField, SelectMultipleField, SubmitField, PasswordField, BooleanField, SelectField # ¡Nuevos campos!
+from wtforms import StringField, TextAreaField, SelectMultipleField, SubmitField, PasswordField, BooleanField, SelectField, FloatField # ¡Nuevos campos!
 from wtforms.validators import DataRequired, Length, Email, EqualTo, ValidationError
 from wtforms_sqlalchemy.fields import QuerySelectMultipleField, QuerySelectField
 from models import GradeLevel, User # Importa User
@@ -66,3 +66,50 @@ class RegistrationForm(FlaskForm):
         user = User.query.filter_by(email=email.data).first()
         if user is not None:
             raise ValidationError('Ese email ya está registrado. Por favor, usa uno diferente.')
+
+# --- Nuevo Formulario: GradeForm ---
+class GradeForm(FlaskForm):
+    # Campo para el valor de la nota
+    value = FloatField('Nota', validators=[DataRequired(message="La nota es obligatoria.")])
+
+    # Campo para seleccionar el estudiante (los estudiantes se filtrarán por asignatura en la ruta)
+    # Por ahora, tendrá todos los estudiantes. La lógica de filtro por asignatura se hará en la ruta/vista.
+    student = QuerySelectField(
+        'Estudiante',
+        query_factory=lambda: User.query.filter_by(role='Estudiante').order_by(User.last_name).all(),
+        get_label=lambda user: f"{user.first_name} {user.last_name} ({user.username})",
+        validators=[DataRequired(message="Debe seleccionar un estudiante.")],
+        allow_blank=False
+    )
+    
+    # Campo para el bimestre/período
+    bimestre = SelectField(
+        'Bimestre/Período',
+        choices=[
+            ('Bimestre 1', 'Bimestre 1'),
+            ('Bimestre 2', 'Bimestre 2'),
+            ('Bimestre 3', 'Bimestre 3'),
+            ('Bimestre 4', 'Bimestre 4'),
+            ('Examen Final', 'Examen Final') # Puedes añadir más opciones si es necesario
+        ],
+        validators=[DataRequired(message="Debe seleccionar un bimestre.")]
+    )
+
+    submit = SubmitField('Guardar Nota')
+
+# --- Formulario de Anuncios ---
+class AnnouncementForm(FlaskForm):
+    title = StringField('Título del Anuncio', validators=[DataRequired(), Length(min=5, max=100)])
+    content = TextAreaField('Contenido del Anuncio', validators=[DataRequired()])
+    
+    target_role = SelectField('Dirigido a', choices=[
+        ('Todos', 'Todos'),
+        ('Estudiante', 'Estudiantes'),
+        ('Profesor', 'Profesores'),
+        ('Administrador', 'Administradores')
+    ], validators=[DataRequired()])
+    
+    submit = SubmitField('Publicar Anuncio')
+
+    # Para el campo 'user' (quién lo publica), no lo incluimos directamente en el formulario
+    # Lo asignaremos automáticamente en la ruta usando current_user.id

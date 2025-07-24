@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>Mis Notas en {{ subject.name }}</h1>
+    <p>Profesor: 
+        {% if subject.teacher_obj %}
+            {{ subject.teacher_obj.first_name }} {{ subject.teacher_obj.last_name }}
+        {% else %}
+            Sin Asignar
+        {% endif %}
+    </p>
+
+    {% if grades %}
+        <table border="1" style="width:100%; border-collapse: collapse; margin-bottom: 20px;">
+            <thead>
+                <tr style="background-color:#f2f2f2;">
+                    <th style="padding: 8px; text-align: left;">Bimestre/Período</th>
+                    <th style="padding: 8px; text-align: left;">Nota</th>
+                    <th style="padding: 8px; text-align: left;">Fecha Registro</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for grade in grades %}
+                    <tr>
+                        <td style="padding: 8px;">{{ grade.bimestre }}</td>
+                        <td style="padding: 8px;">{{ grade.value }}</td>
+                        <td style="padding: 8px;">{{ grade.date_recorded.strftime('%d/%m/%Y %H:%M') }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% if average_grade > 0 %}
+            <p><strong>Promedio de Notas en {{ subject.name }}: {{ "%.2f"|format(average_grade) }}</strong></p>
+        {% endif %}
+    {% else %}
+        <p>Aún no hay notas registradas para ti en esta asignatura.</p>
+    {% endif %}
+
+    <p><a href="{{ url_for('student_dashboard') }}">Volver a mi Dashboard</a></p>
+{% endblock %}

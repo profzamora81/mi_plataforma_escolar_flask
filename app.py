@@ -5,6 +5,7 @@ from flask_sqlalchemy import SQLAlchemy
 from config import Config
 from flask_login import LoginManager, UserMixin, login_user, logout_user, current_user, login_required # ¡Nuevas importaciones!
 from werkzeug.security import generate_password_hash, check_password_hash # Para manejar contraseñas
+from flask_wtf.csrf import CSRFProtect
 
 
 app = Flask(__name__)
@@ -16,6 +17,23 @@ db = SQLAlchemy(app) # Inicializa la base de datos con tu aplicación Flask
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
+
+def create_app(config_class=Config):
+    app = Flask(__name__)
+    app.config.from_object(config_class)
+
+    db.init_app(app)
+    login_manager.init_app(app)
+    CSRFProtect(app) # Inicializa CSRFProtect
+
+    # Importa tus modelos para que SQLAlchemy los conozca al crear las tablas
+    from models import User, GradeLevel, Subject, Grade
+
+    # Importa tus rutas aquí después de inicializar app, db, etc.
+    with app.app_context(): # Es una buena práctica envolver las importaciones de rutas en el contexto de la aplicación
+        import routes
+
+    return app
 
 # Importa tus modelos (asegúrate de que estén definidos en models.py)
 from models import User, GradeLevel, Subject
