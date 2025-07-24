@@ -66,3 +66,37 @@ ul {
 ul li {
     margin-bottom: 5px;
 }
+.table-responsive {
+    overflow-x: auto; /* Permite el desplazamiento horizontal si el contenido es demasiado ancho */
+    -webkit-overflow-scrolling: touch; /* Mejora el desplazamiento en dispositivos táctiles */
+}
+
+/* Opcional: Estilos generales para tablas si no usas Bootstrap directamente */
+.table {
+    width: 100%; /* Asegura que la tabla ocupe todo el ancho disponible */
+    border-collapse: collapse; /* Para bordes limpios */
+}
+
+.table th, .table td {
+    padding: 8px;
+    border: 1px solid #ddd;
+    text-align: left;
+    vertical-align: top; /* Alinea el contenido en la parte superior */
+    white-space: normal; /* Permite que el texto se ajuste si la columna es estrecha */
+}
+
+.table thead th {
+    background-color: #f2f2f2;
+}
+
+/* Puedes añadir un ancho máximo a las columnas de texto largo */
+.table td.reason-column {
+    max-width: 250px; /* Ejemplo: Limita el ancho de la columna de razón */
+    word-wrap: break-word; /* Rompe palabras largas si no caben */
+}
+
+/* Estilo para los botones dentro de la tabla si son demasiado grandes */
+.table .btn-sm {
+    padding: .25rem .5rem; /* Reduce el padding para hacerlos más pequeños */
+    font-size: .875rem; /* Reduce el tamaño de la fuente */
+}

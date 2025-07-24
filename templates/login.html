@@ -1,0 +1,35 @@
+{# templates/login.html #}
+{% extends "base.html" %}
+
+{% block content %}
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <h1 class="text-center">{{ title }}</h1>
+            <form action="" method="post" novalidate>
+                {{ form.hidden_tag() }}
+                <div class="form-group mb-3">
+                    {{ form.username.label(class="form-label") }}
+                    {{ form.username(class="form-control", placeholder="Ingresa tu nombre de usuario") }}
+                    {% for error in form.username.errors %}
+                        <div class="alert alert-danger mt-1">{{ error }}</div>
+                    {% endfor %}
+                </div>
+                <div class="form-group mb-3">
+                    {{ form.password.label(class="form-label") }}
+                    {{ form.password(class="form-control", placeholder="Ingresa tu contraseña") }}
+                    {% for error in form.password.errors %}
+                        <div class="alert alert-danger mt-1">{{ error }}</div>
+                    {% endfor %}
+                </div>
+                <div class="form-check mb-3">
+                    {{ form.remember_me(class="form-check-input") }}
+                    {{ form.remember_me.label(class="form-check-label") }}
+                </div>
+                <div class="d-grid gap-2">
+                    {{ form.submit(class="btn btn-primary") }}
+                </div>
+            </form>
+            <p class="text-center mt-3">¿Nuevo usuario? <a href="{{ url_for('register') }}">Regístrate</a></p>
+        </div>
+    </div>
+{% endblock %}

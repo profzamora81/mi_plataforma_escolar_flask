@@ -22,7 +22,7 @@
         <p>No hay anuncios importantes para ti en este momento.</p>
     {% endif %}
     <h2>Tus Asignaturas Asignadas:</h2>
-    {% if subjects_taught %} 
+    {% if subjects_taught %}
         <table border="1" style="width:100%; border-collapse: collapse;">
             <thead>
                 <tr style="background-color:#f2f2f2;">
@@ -33,7 +33,7 @@
                 </tr>
             </thead>
             <tbody>
-                {% for subject in subjects_taught %} 
+                {% for subject in subjects_taught %}
                     <tr>
                         <td style="padding: 8px;">{{ subject.name }}</td>
                         <td style="padding: 8px;">{{ subject.code }}</td>
@@ -43,7 +43,8 @@
                             {% endfor %}
                         </td>
                         <td style="padding: 8px;">
-                            <a href="{{ url_for('teacher_manage_grades', subject_id=subject.id) }}">Gestionar Notas</a>
+                            <a href="{{ url_for('teacher_manage_grades', subject_id=subject.id) }}">Gestionar Notas</a> | 
+                            <a href="{{ url_for('teacher_configure_subject_activities', subject_id=subject.id) }}">Configurar Actividades</a> {# <-- ¡NUEVO ENLACE! #}
                         </td>
                     </tr>
                 {% endfor %}

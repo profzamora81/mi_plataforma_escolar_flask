@@ -1,0 +1,135 @@
+{# templates/admin/manage_grade_requests.html #}
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>Gestión de Solicitudes de Cambio de Notas</h1>
+
+    <h2 style="margin-top: 20px;">Solicitudes Pendientes ({{ pending_requests|length }})</h2>
+    {% if pending_requests %}
+        <table border="1" style="width:100%; border-collapse: collapse; margin-top: 15px;">
+            <thead>
+                <tr style="background-color:#f2f2f2;">
+                    <th style="padding: 8px; text-align: left;">ID Solicitud</th>
+                    <th style="padding: 8px; text-align: left;">Tipo</th>
+                    <th style="padding: 8px; text-align: left;">Estudiante</th>
+                    <th style="padding: 8px; text-align: left;">Asignatura</th>
+                    <th style="padding: 8px; text-align: left;">Actividad</th>
+                    <th style="padding: 8px; text-align: left;">Nota Original</th>
+                    <th style="padding: 8px; text-align: left;">Nuevo Valor</th>
+                    <th style="padding: 8px; text-align: left;">Razón</th>
+                    <th style="padding: 8px; text-align: left;">Solicitado Por</th>
+                    <th style="padding: 8px; text-align: left;">Fecha Solicitud</th>
+                    <th style="padding: 8px; text-align: left;">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for req in pending_requests %}
+                    <tr>
+                        <td style="padding: 8px;">{{ req.id }}</td>
+                        <td style="padding: 8px;">{{ 'Edición' if req.request_type == 'edit' else 'Eliminación' }}</td>
+                        <td style="padding: 8px;">{{ req.grade.student.first_name }} {{ req.grade.student.last_name }}</td>
+                        <td style="padding: 8px;">{{ req.grade.subject.name }}</td>
+                        <td style="padding: 8px;">{{ req.grade.activity_name }} ({{ req.grade.unit_number }})</td>
+                        <td style="padding: 8px;">{{ req.grade.value }}</td>
+                        <td style="padding: 8px;">{{ req.new_value if req.request_type == 'edit' else 'N/A' }}</td>
+                        <td style="padding: 8px;">{{ req.reason }}</td>
+                        <td style="padding: 8px;">{{ req.requested_by_user.first_name }} {{ req.requested_by_user.last_name }}</td>
+                        <td style="padding: 8px;">{{ req.request_date.strftime('%d/%m/%Y %H:%M') }}</td>
+                        <td style="padding: 8px;">
+                            <form action="{{ url_for('admin_process_grade_change_request', request_id=req.id, action='approve') }}" method="POST" style="display:inline;">
+                                <button type="submit" class="btn btn-success btn-sm" onclick="return confirm('¿Aprobar esta solicitud?');">Aprobar</button>
+                            </form>
+                            <form action="{{ url_for('admin_process_grade_change_request', request_id=req.id, action='reject') }}" method="POST" style="display:inline;">
+                                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('¿Rechazar esta solicitud?');">Rechazar</button>
+                            </form>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No hay solicitudes de cambio de notas pendientes.</p>
+    {% endif %}
+
+    <h2 style="margin-top: 30px;">Solicitudes Aprobadas ({{ approved_requests|length }})</h2>
+    {% if approved_requests %}
+        <table border="1" style="width:100%; border-collapse: collapse; margin-top: 15px;">
+            <thead>
+                <tr style="background-color:#f2f2f2;">
+                    <th style="padding: 8px; text-align: left;">ID Solicitud</th>
+                    <th style="padding: 8px; text-align: left;">Tipo</th>
+                    <th style="padding: 8px; text-align: left;">Estudiante</th>
+                    <th style="padding: 8px; text-align: left;">Asignatura</th>
+                    <th style="padding: 8px; text-align: left;">Actividad</th>
+                    <th style="padding: 8px; text-align: left;">Nota Original</th>
+                    <th style="padding: 8px; text-align: left;">Nuevo Valor</th>
+                    <th style="padding: 8px; text-align: left;">Razón</th>
+                    <th style="padding: 8px; text-align: left;">Solicitado Por</th>
+                    <th style="padding: 8px; text-align: left;">Fecha Solicitud</th>
+                    <th style="padding: 8px; text-align: left;">Fecha Aprobación</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for req in approved_requests %}
+                    <tr>
+                        <td style="padding: 8px;">{{ req.id }}</td>
+                        <td style="padding: 8px;">{{ 'Edición' if req.request_type == 'edit' else 'Eliminación' }}</td>
+                        <td style="padding: 8px;">{{ req.grade.student.first_name }} {{ req.grade.student.last_name }}</td>
+                        <td style="padding: 8px;">{{ req.grade.subject.name }}</td>
+                        <td style="padding: 8px;">{{ req.grade.activity_name }} ({{ req.grade.unit_number }})</td>
+                        <td style="padding: 8px;">{{ req.grade.value }}</td>
+                        <td style="padding: 8px;">{{ req.new_value if req.request_type == 'edit' else 'N/A' }}</td>
+                        <td style="padding: 8px;">{{ req.reason }}</td>
+                        <td style="padding: 8px;">{{ req.requested_by_user.first_name }} {{ req.requested_by_user.last_name }}</td>
+                        <td style="padding: 8px;">{{ req.request_date.strftime('%d/%m/%Y %H:%M') }}</td>
+                        <td style="padding: 8px;">{{ req.approval_date.strftime('%d/%m/%Y %H:%M') }} (por {{ req.approved_by_user.username }})</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No hay solicitudes de cambio de notas aprobadas.</p>
+    {% endif %}
+
+    <h2 style="margin-top: 30px;">Solicitudes Rechazadas ({{ rejected_requests|length }})</h2>
+    {% if rejected_requests %}
+        <table border="1" style="width:100%; border-collapse: collapse; margin-top: 15px;">
+            <thead>
+                <tr style="background-color:#f2f2f2;">
+                    <th style="padding: 8px; text-align: left;">ID Solicitud</th>
+                    <th style="padding: 8px; text-align: left;">Tipo</th>
+                    <th style="padding: 8px; text-align: left;">Estudiante</th>
+                    <th style="padding: 8px; text-align: left;">Asignatura</th>
+                    <th style="padding: 8px; text-align: left;">Actividad</th>
+                    <th style="padding: 8px; text-align: left;">Nota Original</th>
+                    <th style="padding: 8px; text-align: left;">Nuevo Valor</th>
+                    <th style="padding: 8px; text-align: left;">Razón</th>
+                    <th style="padding: 8px; text-align: left;">Solicitado Por</th>
+                    <th style="padding: 8px; text-align: left;">Fecha Solicitud</th>
+                    <th style="padding: 8px; text-align: left;">Fecha Rechazo</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for req in rejected_requests %}
+                    <tr>
+                        <td style="padding: 8px;">{{ req.id }}</td>
+                        <td style="padding: 8px;">{{ 'Edición' if req.request_type == 'edit' else 'Eliminación' }}</td>
+                        <td style="padding: 8px;">{{ req.grade.student.first_name }} {{ req.grade.student.last_name }}</td>
+                        <td style="padding: 8px;">{{ req.grade.subject.name }}</td>
+                        <td style="padding: 8px;">{{ req.grade.activity_name }} ({{ req.grade.unit_number }})</td>
+                        <td style="padding: 8px;">{{ req.grade.value }}</td>
+                        <td style="padding: 8px;">{{ req.new_value if req.request_type == 'edit' else 'N/A' }}</td>
+                        <td style="padding: 8px;">{{ req.reason }}</td>
+                        <td style="padding: 8px;">{{ req.requested_by_user.first_name }} {{ req.requested_by_user.last_name }}</td>
+                        <td style="padding: 8px;">{{ req.request_date.strftime('%d/%m/%Y %H:%M') }}</td>
+                        <td style="padding: 8px;">{{ req.approval_date.strftime('%d/%m/%Y %H:%M') }} (por {{ req.approved_by_user.username }})</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No hay solicitudes de cambio de notas rechazadas.</p>
+    {% endif %}
+
+    <p style="margin-top: 20px;"><a href="{{ url_for('admin_dashboard') }}" class="btn btn-secondary">Volver al Dashboard</a></p>
+{% endblock %}

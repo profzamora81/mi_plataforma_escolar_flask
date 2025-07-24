@@ -1,52 +1,75 @@
+{# templates/profesores/manage_grades.html #}
 {% extends "base.html" %}
 
 {% block content %}
-    <h1>Notas de {{ subject.name }} ({{ subject.code }})</h1>
-    <p>Profesor: {{ subject.teacher_obj.first_name }} {{ subject.teacher_obj.last_name }}</p>
-    <p>Niveles: 
-        {% for level in subject.grade_levels %}
-            {{ level.name }}{% if not loop.last %}, {% endif %}
-        {% endfor %}
-    </p>
+    <h1>Gestionar Notas para {{ subject.name }}</h1>
+    <h2>Estudiantes Inscritos y Notas</h2>
 
-    <hr>
-    <h3>Resumen de Notas por Estudiante:</h3>
-    <a href="{{ url_for('teacher_add_grade', subject_id=subject.id) }}" class="button">Añadir Nueva Nota</a>
-    <br><br>
+    {# Mensaje informativo para el profesor #}
+    <div class="alert alert-info" role="alert">
+        <strong>Importante:</strong> Los cambios o eliminaciones de notas deben ser solicitados a un Administrador. Haz clic en "Solicitar Cambio" junto a la nota para enviar tu petición.
+    </div>
 
-    {% if grades_by_student %}
-        {% for student_id, data in grades_by_student.items() %}
-            <h4>{{ data.student_obj.first_name }} {{ data.student_obj.last_name }} ({{ data.student_obj.username }})</h4>
-            <table border="1" style="width:100%; border-collapse: collapse; margin-bottom: 20px;">
-                <thead>
-                    <tr style="background-color:#f9f9f9;">
-                        <th style="padding: 8px; text-align: left;">Bimestre/Período</th>
-                        <th style="padding: 8px; text-align: left;">Nota</th>
-                        <th style="padding: 8px; text-align: left;">Fecha Registro</th>
-                        <th style="padding: 8px; text-align: left;">Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for grade in data.grades | sort(attribute='bimestre') %} {# Ordenar por bimestre si los nombres son consistentes #}
-                        <tr>
-                            <td style="padding: 8px;">{{ grade.bimestre }}</td>
-                            <td style="padding: 8px;">{{ grade.value }}</td>
-                            <td style="padding: 8px;">{{ grade.date_recorded.strftime('%d/%m/%Y %H:%M') }}</td>
-                            <td style="padding: 8px;">
-                                <a href="{{ url_for('teacher_edit_grade', grade_id=grade.id) }}">Editar</a> |
-                                <form action="{{ url_for('teacher_delete_grade', grade_id=grade.id) }}" method="POST" style="display:inline;">
-                                    <button type="submit" onclick="return confirm('¿Estás seguro de que quieres eliminar esta nota?');" style="background: none; border: none; color: blue; cursor: pointer; text-decoration: underline; padding: 0;">Eliminar</button>
-                                </form>
-                            </td>
-                        </tr>
+    {% if enrolled_students %}
+        <table border="1" style="width:100%; border-collapse: collapse; margin-top: 20px;">
+            <thead>
+                <tr style="background-color:#f2f2f2;">
+                    <th style="padding: 8px; text-align: left;">Estudiante</th>
+                    {# Encabezados para cada actividad configurada #}
+                    {% for config in configured_activities %}
+                        <th style="padding: 8px; text-align: center;">{{ config.activity_name }} ({{ config.unit_number }}) - {{ config.max_score }}pts</th>
                     {% endfor %}
-                </tbody>
-            </table>
-        {% endfor %}
+                    <th style="padding: 8px; text-align: center;">Parciales</th> {# Columna para parciales #}
+                    <th style="padding: 8px; text-align: center;">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for student in enrolled_students %}
+                    <tr>
+                        <td style="padding: 8px;">{{ student.first_name }} {{ student.last_name }}</td>
+                        {# Mostrar notas de actividades de zona #}
+                        {% for config in configured_activities %}
+                            <td style="padding: 8px; text-align: center;">
+                                {% set grade = grades_data[student.id][config.id] %}
+                                {% if grade %}
+                                    {{ grade.value }} 
+                                    <br>
+                                    <a href="{{ url_for('teacher_request_grade_change', subject_id=subject.id, student_id=student.id, grade_id=grade.id) }}" style="font-size: 0.8em;">Solicitar Cambio</a>
+                                {% else %}
+                                    N/A <br>
+                                    {# Opción para añadir una nota inicial (ej. un 0) si no existe, luego se puede editar #}
+                                    {# Esto es un poco más complejo si queremos una solicitud para "añadir" una nueva nota #}
+                                    {# Por ahora, el profesor tendría que ir a una ruta de "añadir" (que no existe aún en la nueva lógica) #}
+                                    {# o insertar con init_db o similar, y luego solicitar edición #}
+                                {% endif %}
+                            </td>
+                        {% endfor %}
+                        
+                        {# Mostrar notas de parciales #}
+                        <td style="padding: 8px; text-align: center;">
+                            {% if grades_data[student.id]['parciales'] %}
+                                {% for parcial_grade in grades_data[student.id]['parciales'] %}
+                                    {{ parcial_grade.activity_name }}: {{ parcial_grade.value }}
+                                    <a href="{{ url_for('teacher_request_grade_change', subject_id=subject.id, student_id=student.id, grade_id=parcial_grade.id) }}" style="font-size: 0.8em;">Solicitar Cambio</a>
+                                    <br>
+                                {% endfor %}
+                            {% else %}
+                                N/A
+                            {% endif %}
+                        </td>
+
+                        <td style="padding: 8px; text-align: center;">
+                            {# Aquí podrías poner una opción general para "añadir nota", si se implementa una ruta específica para eso #}
+                            {# O simplemente el profesor usa la interfaz de arriba para hacer clic en "N/A" y solicitar una nota #}
+                            <a href="{{ url_for('teacher_request_grade_change', subject_id=subject.id, student_id=student.id) }}" class="btn btn-sm btn-info">Solicitar Nota (Nueva)</a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     {% else %}
-        <p>No hay notas registradas para esta asignatura todavía.</p>
-        <p>Utiliza el botón "Añadir Nueva Nota" para empezar.</p>
+        <p>No hay estudiantes inscritos en esta asignatura.</p>
     {% endif %}
 
-    <p><a href="{{ url_for('teacher_dashboard') }}">Volver al Dashboard del Profesor</a></p>
+    <p style="margin-top: 20px;"><a href="{{ url_for('teacher_dashboard') }}" class="btn btn-secondary">Volver al Dashboard</a></p>
 {% endblock %}

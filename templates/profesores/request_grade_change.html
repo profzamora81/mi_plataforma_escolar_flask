@@ -1,0 +1,81 @@
+{# templates/profesores/request_grade_change.html #}
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>{{ title }}</h1>
+    <h2>Estudiante: {{ student.first_name }} {{ student.last_name }}</h2>
+    <h2>Asignatura: {{ subject.name }}</h2>
+
+    {% if grade %}
+        <p><strong>Actividad:</strong> {{ grade.activity_name }} ({{ grade.unit_number }})</p>
+        <p><strong>Tipo de Componente:</strong> {{ grade.component_type }}</p>
+        <p><strong>Valor Original:</strong> {{ grade.value }}</p>
+        {# Pasa el valor original para referencia, si es una edición #}
+        {% if original_value is not none and original_value != grade.value %}
+            <p><strong>Valor Original (pasado):</strong> {{ original_value }}</p>
+        {% endif %}
+    {% else %}
+        <p>Estás solicitando una nueva nota para este estudiante en esta asignatura.</p>
+        <p>Deberás especificar el nombre de la actividad, unidad y tipo de componente en el formulario.</p>
+    {% endif %}
+
+    <form method="POST" action="">
+        {{ form.hidden_tag() }}
+        {{ form.grade_id }} {# Campo oculto para el ID de la nota si es una edición #}
+        {{ form.student_id }} {# Campo oculto para el ID del estudiante #}
+        {{ form.subject_id }} {# Campo oculto para el ID de la asignatura #}
+
+        <div class="form-group">
+            {{ form.request_type.label }}
+            {{ form.request_type(class="form-control") }}
+            {% for error in form.request_type.errors %}
+                <span style="color: red;">{{ error }}</span><br>
+            {% endfor %}
+        </div>
+
+        {# new_value solo visible si el tipo de solicitud es 'edit' #}
+        <div class="form-group" id="new-value-group" style="display: none;">
+            {{ form.new_value.label }}
+            {{ form.new_value(class="form-control", type="number", step="0.1") }}
+            {% for error in form.new_value.errors %}
+                <span style="color: red;">{{ error }}</span><br>
+            {% endfor %}
+        </div>
+
+        <div class="form-group">
+            {{ form.reason.label }}
+            {{ form.reason(class="form-control", rows=5) }}
+            {% for error in form.reason.errors %}
+                <span style="color: red;">{{ error }}</span><br>
+            {% endfor %}
+        </div>
+
+        {{ form.submit(class="btn btn-primary") }}
+    </form>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const requestTypeSelect = document.getElementById('request_type');
+            const newValueGroup = document.getElementById('new-value-group');
+            const new_value_field = document.getElementById('new_value'); // Obtén el campo
+
+            function toggleNewValueVisibility() {
+                if (requestTypeSelect.value === 'edit') {
+                    newValueGroup.style.display = 'block';
+                    new_value_field.setAttribute('required', 'required'); // Hacer el campo requerido
+                } else {
+                    newValueGroup.style.display = 'none';
+                    new_value_field.removeAttribute('required'); // No requerido
+                    new_value_field.value = ''; // Limpiar el valor cuando se oculta
+                }
+            }
+
+            // Establecer visibilidad inicial
+            toggleNewValueVisibility();
+
+            // Escuchar cambios en el selector
+            requestTypeSelect.addEventListener('change', toggleNewValueVisibility);
+        });
+    </script>
+    <p style="margin-top: 20px;"><a href="{{ url_for('teacher_manage_grades', subject_id=subject.id) }}" class="btn btn-secondary">Cancelar</a></p>
+{% endblock %}

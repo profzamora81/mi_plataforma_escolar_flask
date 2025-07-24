@@ -1,0 +1,56 @@
+{# templates/admin/list_subjects.html #}
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>{{ title }}</h1>
+
+    <p><a href="{{ url_for('admin_dashboard') }}" class="btn btn-secondary">Volver al Dashboard</a></p>
+
+    {% if subjects %}
+        <table border="1" style="width:100%; border-collapse: collapse; margin-top: 20px;">
+            <thead>
+                <tr style="background-color:#f2f2f2;">
+                    <th style="padding: 8px; text-align: left;">Nombre</th>
+                    <th style="padding: 8px; text-align: left;">Código</th>
+                    <th style="padding: 8px; text-align: left;">Descripción</th>
+                    <th style="padding: 8px; text-align: left;">Profesor Asignado</th>
+                    <th style="padding: 8px; text-align: left;">Niveles</th>
+                    <th style="padding: 8px; text-align: left;">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for subject in subjects %}
+                    <tr>
+                        <td style="padding: 8px;">{{ subject.name }}</td>
+                        <td style="padding: 8px;">{{ subject.code }}</td>
+                        <td style="padding: 8px;">{{ subject.description }}</td>
+                        <td style="padding: 8px;">
+                            {% if subject.teacher %}
+                                {{ subject.teacher.first_name }} {{ subject.teacher.last_name }}
+                            {% else %}
+                                No asignado
+                            {% endif %}
+                        </td>
+                        <td style="padding: 8px;">
+                            {% if subject.grade_levels %}
+                                {% for level in subject.grade_levels %}
+                                    {{ level.name }}{% if not loop.last %}, {% endif %}
+                                {% endfor %}
+                            {% else %}
+                                N/A
+                            {% endif %}
+                        </td>
+                        <td style="padding: 8px;">
+                            {# Aquí podrías añadir enlaces para editar o eliminar la asignatura #}
+                            {# <a href="{{ url_for('admin_edit_subject', subject_id=subject.id) }}">Editar</a> | #}
+                            {# <a href="{{ url_for('admin_delete_subject', subject_id=subject.id) }}">Eliminar</a> #}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No hay asignaturas registradas en el sistema.</p>
+    {% endif %}
+
+{% endblock %}

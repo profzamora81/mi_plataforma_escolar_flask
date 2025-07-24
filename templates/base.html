@@ -17,7 +17,7 @@
                     {% if current_user.role == 'Administrador' %}
                         <li><a href="{{ url_for('admin_list_subjects') }}">Gestión Asignaturas (Admin)</a></li>
                         <li><a href="{{ url_for('admin_create_subject') }}">Crear Asignatura (Admin)</a></li>
-                        <li><a href="{{ url_for('listar_profesores') }}">Profesores (Lista Pública)</a></li> {# El admin puede ver esta lista #}
+                        <li><a href="{{ url_for('admin_list_teachers') }}">Profesores (Lista Pública)</a></li> {# El admin puede ver esta lista #}
                         {# Aquí irían más enlaces de admin, como gestión de usuarios #}
                     {% elif current_user.role == 'Profesor' %}
                         <li><a href="{{ url_for('teacher_dashboard') }}">Mi Dashboard</a></li>

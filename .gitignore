@@ -1,31 +1,44 @@
-# Directorios del entorno virtual
-venv/
-env/
-
-# Archivos de la base de datos
-*.db
-*.sqlite
-*.sqlite3
-
-# Archivos de Python generados automáticamente
+# Python
 __pycache__/
 *.pyc
+*.pyo
 *.pyd
+.Python
+env/
+venv/
+lib/
+lib64/
+Python/
+build/
+develop-eggs/
+dist/
+eggs/
+.eggs/
 *.egg-info/
-.Python/
+.installed.cfg
+*.pth
+.tox/
+.coverage
+.coverage.*
+.hypothesis/
+.pytest_cache/
+nosetests.xml
+coverage.xml
+.benchmarks
+.ipynb_checkpoints
+profile_temp/
+sitecustomize.py
 
-# Archivos de configuración y logs sensibles
-.flaskenv
-.env
+# Base de datos SQLite
+*.db
+*.sqlite3
+
+# Flask específicos
 instance/
-tmp/
-logs/
+.flaskenv
+
+# Archivos de logs
 *.log
 
-# Archivos específicos de sistemas operativos
-.DS_Store # macOS
-Thumbs.db # Windows
-
-# Archivos de IDEs comunes
-.vscode/ # Para VS Code
-.idea/   # Para PyCharm
+# Archivos de configuración sensibles (si los tuvieras, por ejemplo, secretos de API)
+config.py # Si tienes un archivo config.py con datos sensibles, ¡no lo subas!

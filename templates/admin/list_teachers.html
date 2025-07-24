@@ -1,0 +1,31 @@
+{# templates/admin/list_teachers.html #}
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>{{ title }}</h1>
+
+    {% if professors %}
+        <table border="1" style="width:100%; border-collapse: collapse; margin-top: 20px;">
+            <thead>
+                <tr style="background-color:#f2f2f2;">
+                    <th style="padding: 8px; text-align: left;">Nombre Completo</th>
+                    <th style="padding: 8px; text-align: left;">Usuario</th>
+                    <th style="padding: 8px; text-align: left;">Correo Electrónico</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for professor in professors %}
+                    <tr>
+                        <td style="padding: 8px;">{{ professor.first_name }} {{ professor.last_name }}</td>
+                        <td style="padding: 8px;">{{ professor.username }}</td>
+                        <td style="padding: 8px;">{{ professor.email }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No hay profesores registrados en el sistema.</p>
+    {% endif %}
+
+    <p style="margin-top: 20px;"><a href="{{ url_for('admin_dashboard') }}" class="btn btn-secondary">Volver al Dashboard</a></p>
+{% endblock %}

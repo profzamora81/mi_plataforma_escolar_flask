@@ -1,0 +1,103 @@
+{# templates/admin/admin_dashboard.html #}
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>Dashboard de Administrador</h1>
+    <h2>Anuncios</h2>
+    <p><a href="{{ url_for('admin_create_announcement') }}" class="btn btn-primary">Crear Nuevo Anuncio</a></p>
+    {# ... (sección de anuncios si existe) ... #}
+
+    <h2>Gestión de Asignaturas</h2>
+    <p><a href="{{ url_for('admin_create_subject') }}" class="btn btn-primary">Crear Nueva Asignatura</a></p>
+    {% if subjects %}
+        <table border="1" style="width:100%; border-collapse: collapse; margin-top: 15px;">
+            <thead>
+                <tr style="background-color:#f2f2f2;">
+                    <th style="padding: 8px; text-align: left;">Asignatura</th>
+                    <th style="padding: 8px; text-align: left;">Código</th>
+                    <th style="padding: 8px; text-align: left;">Profesor</th>
+                    <th style="padding: 8px; text-align: left;">Nivel(es)</th>
+                    <th style="padding: 8px; text-align: left;">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for subject in subjects %}
+                    <tr>
+                        <td style="padding: 8px;">{{ subject.name }}</td>
+                        <td style="padding: 8px;">{{ subject.code }}</td>
+                        <td style="padding: 8px;">{{ subject.teacher_obj.first_name }} {{ subject.teacher_obj.last_name }}</td>
+                        <td style="padding: 8px;">
+                            {% for level in subject.grade_levels %}
+                                {{ level.name }}{% if not loop.last %}, {% endif %}
+                            {% endfor %}
+                        </td>
+                        <td style="padding: 8px;">
+                            <a href="{{ url_for('admin_edit_subject', subject_id=subject.id) }}">Editar</a> |
+                            <form action="{{ url_for('admin_delete_subject', subject_id=subject.id) }}" method="POST" style="display:inline;">
+                                <button type="submit" onclick="return confirm('¿Estás seguro de que quieres eliminar esta asignatura y todas sus relaciones (notas, inscripciones, configuraciones de actividad)? Esto es irreversible.');" style="background: none; border: none; color: red; cursor: pointer; padding: 0;">Eliminar</button>
+                            </form>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No hay asignaturas registradas.</p>
+    {% endif %}
+
+    <h2>Gestión de Usuarios</h2>
+    <p><a href="{{ url_for('admin_manage_users') }}" class="btn btn-info">Gestionar Todos los Usuarios</a></p>
+    <p><a href="{{ url_for('admin_list_teachers') }}" class="btn btn-info">Ver Lista de Profesores</a></p>
+
+    {# --- NUEVA SECCIÓN: Solicitudes de Cambio de Notas Pendientes (Admin) --- #}
+    <h2 style="margin-top: 30px;">Solicitudes de Cambio de Notas Pendientes</h2>
+    <p>Tienes {{ pending_grade_requests|length }} solicitudes pendientes. <a href="{{ url_for('admin_view_grade_change_requests') }}" class="btn btn-sm btn-info">Ver todas las solicitudes</a></p>
+    {% if pending_grade_requests %}
+    <div class="table-responsive">    
+        <table border="1" style="width:100%; border-collapse: collapse; margin-top: 15px;">
+            <thead>
+                <tr style="background-color:#f2f2f2;">
+                    <th style="padding: 8px; text-align: left;">ID Solicitud</th>
+                    <th style="padding: 8px; text-align: left;">Tipo</th>
+                    <th style="padding: 8px; text-align: left;">Estudiante</th>
+                    <th style="padding: 8px; text-align: left;">Asignatura</th>
+                    <th style="padding: 8px; text-align: left;">Actividad</th>
+                    <th style="padding: 8px; text-align: left;">Nota Original</th>
+                    <th style="padding: 8px; text-align: left;">Nuevo Valor</th>
+                    <th style="padding: 8px; text-align: left;">Razón</th>
+                    <th style="padding: 8px; text-align: left;">Solicitado Por</th>
+                    <th style="padding: 8px; text-align: left;">Fecha Solicitud</th>
+                    <th style="padding: 8px; text-align: left;">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for req in pending_grade_requests %}
+                    <tr>
+                        <td style="padding: 8px;">{{ req.id }}</td>
+                        <td style="padding: 8px;">{{ 'Edición' if req.request_type == 'edit' else 'Eliminación' }}</td>
+                        <td style="padding: 8px;">{{ req.grade.student.first_name }} {{ req.grade.student.last_name }}</td>
+                        <td style="padding: 8px;">{{ req.grade.subject.name }}</td>
+                        <td style="padding: 8px;">{{ req.grade.activity_name }} ({{ req.grade.unit_number }})</td>
+                        <td style="padding: 8px;">{{ req.grade.value }}</td>
+                        <td style="padding: 8px;">{{ req.new_value if req.request_type == 'edit' else 'N/A' }}</td>
+                        <td style="padding: 8px;">{{ req.reason }}</td>
+                        <td style="padding: 8px;">{{ req.requested_by_user.first_name }} {{ req.requested_by_user.last_name }}</td>
+                        <td style="padding: 8px;">{{ req.request_date.strftime('%d/%m/%Y %H:%M') }}</td>
+                        <td style="padding: 8px;">
+                            <form action="{{ url_for('admin_process_grade_change_request', request_id=req.id, action='approve') }}" method="POST" style="display:inline;">
+                                <button type="submit" class="btn btn-success btn-sm" onclick="return confirm('¿Aprobar esta solicitud?');">Aprobar</button>
+                            </form>
+                            <form action="{{ url_for('admin_process_grade_change_request', request_id=req.id, action='reject') }}" method="POST" style="display:inline;">
+                                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('¿Rechazar esta solicitud?');">Rechazar</button>
+                            </form>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+        <p>No hay solicitudes de cambio de notas pendientes.</p>
+    {% endif %}
+
+{% endblock %}

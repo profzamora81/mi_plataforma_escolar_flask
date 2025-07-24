@@ -1,0 +1,147 @@
+{# templates/profesores/configure_activities.html #}
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>Configurar Actividades para {{ subject.name }}</h1>
+    <p>Aquí puedes definir las actividades de zona para esta asignatura. La suma de los "Punteos Máximos" de todas las actividades no debe exceder los 60 puntos.</p>
+    <p>Puedes añadir hasta 6 actividades.</p>
+
+    <form method="POST" action="">
+        {{ form.hidden_tag() }}
+
+        <div id="activities-container">
+            {% for activity_field in form.activities %}
+                <div class="activity-entry" style="border: 1px solid #ccc; padding: 15px; margin-bottom: 10px; border-radius: 5px; position: relative;">
+                    {{ activity_field.form.id }} {# Campo oculto para el ID #}
+                    <div style="display: flex; gap: 10px; align-items: flex-end;">
+                        <div style="flex: 1;">
+                            {{ activity_field.form.unit_number.label }}<br>
+                            {{ activity_field.form.unit_number(class="form-control") }}
+                            {% if activity_field.form.unit_number.errors %}
+                                <ul class="errors">
+                                    {% for error in activity_field.form.unit_number.errors %}<li>{{ error }}</li>{% endfor %}
+                                </ul>
+                            {% endif %}
+                        </div>
+                        <div style="flex: 2;">
+                            {{ activity_field.form.activity_name.label }}<br>
+                            {{ activity_field.form.activity_name(class="form-control") }}
+                            {% if activity_field.form.activity_name.errors %}
+                                <ul class="errors">
+                                    {% for error in activity_field.form.activity_name.errors %}<li>{{ error }}</li>{% endfor %}
+                                </ul>
+                            {% endif %}
+                        </div>
+                        <div style="flex: 1;">
+                            {{ activity_field.form.max_score.label }}<br>
+                            {{ activity_field.form.max_score(class="form-control", type="number", step="0.1") }}
+                            {% if activity_field.form.max_score.errors %}
+                                <ul class="errors">
+                                    {% for error in activity_field.form.max_score.errors %}<li>{{ error }}</li>{% endfor %}
+                                </ul>
+                            {% endif %}
+                        </div>
+                        <button type="button" class="remove-activity-btn" style="background-color: #f44336; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; height: 38px;">Eliminar</button>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+        {% if form.activities.errors %}
+            <ul class="errors">
+                {% for error in form.activities.errors %}<li>{{ error }}</li>{% endfor %}
+            </ul>
+        {% endif %}
+
+        <button type="button" id="add-activity-btn" style="background-color: #4CAF50; color: white; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer; margin-top: 10px;">Añadir Otra Actividad</button>
+        <br><br>
+        {{ form.submit(class="btn btn-primary") }}
+    </form>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const activitiesContainer = document.getElementById('activities-container');
+            const addActivityBtn = document.getElementById('add-activity-btn');
+            let activityCount = activitiesContainer.children.length; // Empieza con el número de actividades ya renderizadas
+
+            // Función para añadir una nueva entrada de actividad
+            addActivityBtn.addEventListener('click', function() {
+                if (activityCount >= 6) {
+                    alert('No puedes añadir más de 6 actividades.');
+                    return;
+                }
+
+                const newEntry = document.createElement('div');
+                newEntry.className = 'activity-entry';
+                newEntry.style = 'border: 1px solid #ccc; padding: 15px; margin-bottom: 10px; border-radius: 5px; position: relative;';
+                
+                // Generar HTML para una nueva entrada (similar a como Flask-WTF lo renderizaría)
+                // Usamos un placeholder "__CALL_PLACEHOLDER__" para el índice que será reemplazado por JavaScript
+                // Esto es un truco común con FieldList en WTForms y JS
+                newEntry.innerHTML = `
+                    <input type="hidden" id="activities-${activityCount}-id" name="activities-${activityCount}-id" value="">
+                    <div style="display: flex; gap: 10px; align-items: flex-end;">
+                        <div style="flex: 1;">
+                            <label for="activities-${activityCount}-unit_number">Unidad</label><br>
+                            <select class="form-control" id="activities-${activityCount}-unit_number" name="activities-${activityCount}-unit_number" required>
+                                <option value="Unidad I">Unidad I</option>
+                                <option value="Unidad II">Unidad II</option>
+                                <option value="Unidad III">Unidad III</option>
+                                <option value="Unidad IV">Unidad IV</option>
+                            </select>
+                        </div>
+                        <div style="flex: 2;">
+                            <label for="activities-${activityCount}-activity_name">Nombre de la Actividad</label><br>
+                            <input class="form-control" id="activities-${activityCount}-activity_name" name="activities-${activityCount}-activity_name" required type="text" value="">
+                        </div>
+                        <div style="flex: 1;">
+                            <label for="activities-${activityCount}-max_score">Punteo Máximo</label><br>
+                            <input class="form-control" id="activities-${activityCount}-max_score" name="activities-${activityCount}-max_score" required step="0.1" type="number" value="">
+                        </div>
+                        <button type="button" class="remove-activity-btn" style="background-color: #f44336; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; height: 38px;">Eliminar</button>
+                    </div>
+                `;
+                
+                activitiesContainer.appendChild(newEntry);
+                activityCount++;
+                addRemoveEventListeners(newEntry); // Añadir listener al nuevo botón de eliminar
+            });
+
+            // Función para añadir listeners de eliminar a los botones existentes y nuevos
+            function addRemoveEventListeners(parent) {
+                (parent || activitiesContainer).querySelectorAll('.remove-activity-btn').forEach(button => {
+                    button.onclick = function() {
+                        if (activitiesContainer.children.length > 0) {
+                            this.closest('.activity-entry').remove();
+                            activityCount--;
+                            // Reajustar los índices de los campos si se elimina un elemento del medio
+                            updateActivityIndices();
+                        }
+                    };
+                });
+            }
+
+            // Función para actualizar los índices de los campos después de una eliminación
+            function updateActivityIndices() {
+                const entries = activitiesContainer.querySelectorAll('.activity-entry');
+                entries.forEach((entry, index) => {
+                    entry.querySelectorAll('[name^="activities-"], [id^="activities-"]').forEach(element => {
+                        const currentName = element.getAttribute('name');
+                        const currentId = element.getAttribute('id');
+                        
+                        if (currentName) {
+                            element.setAttribute('name', currentName.replace(/activities-\d+/, `activities-${index}`));
+                        }
+                        if (currentId) {
+                            element.setAttribute('id', currentId.replace(/activities-\d+/, `activities-${index}`));
+                        }
+                    });
+                });
+                activityCount = entries.length;
+            }
+
+            // Añadir listeners de eliminar a las entradas existentes al cargar la página
+            addRemoveEventListeners();
+        });
+    </script>
+{% endblock %}
