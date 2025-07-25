@@ -3,7 +3,7 @@
 from app import app, db 
 from models import User, Subject, GradeLevel, Grade, Announcement, Enrollment, SubjectActivityConfig, GradeChangeRequest # ¡Nuevas importaciones!
 from forms import SubjectForm, LoginForm, RegistrationForm, GradeForm, AnnouncementForm, SubjectActivitiesConfigForm, SubjectActivityConfigItemForm # Importaciones existentes
-from forms import GradeChangeRequestForm # ¡NUEVA IMPORTACIÓN!
+from forms import GradeChangeRequestForm 
 from flask import render_template, request, redirect, url_for, flash
 from datetime import datetime
 from flask_login import login_user, logout_user, current_user, login_required
@@ -122,6 +122,11 @@ def admin_dashboard():
     
     # Obtener solicitudes de cambio de notas pendientes
     pending_grade_requests = GradeChangeRequest.query.filter_by(status='pending').order_by(GradeChangeRequest.request_date.asc()).all()
+
+    # Obtener anuncios para el administrador ---
+    admin_announcements = Announcement.query.filter(
+        (Announcement.target_role == 'Todos') | (Announcement.target_role == 'Administrador')
+    ).order_by(Announcement.date_posted.desc()).all()
 
     current_year = datetime.now().year
     return render_template('admin/admin_dashboard.html', 
@@ -275,6 +280,18 @@ def admin_manage_users():
     users = User.query.all()
     current_year = datetime.now().year
     return render_template('admin/manage_users.html', title='Gestionar Usuarios', users=users, current_year=current_year)
+
+# NUEVA RUTA: Listar Profesores (Pública)
+# Esta ruta es para que cualquier usuario pueda ver la lista de profesores sin necesidad de autenticación
+@app.route('/profesores') 
+def listar_profesores(): 
+    # Obtener solo usuarios con rol 'Profesor'
+    professors = User.query.filter_by(role='Profesor').order_by(User.last_name).all()
+    current_year = datetime.now().year
+    return render_template('public_list_teachers.html', # Asegúrate de que esta plantilla exista
+                           title='Nuestros Profesores', 
+                           professors=professors, 
+                           current_year=current_year)
 
 # NUEVA RUTA: Listar Profesores
 @app.route('/admin/listar_profesores')
@@ -583,6 +600,11 @@ def student_dashboard():
     subjects_with_grades = []
     for subject in enrolled_subjects:
         subjects_with_grades.append(subject)
+
+    # --- Obtener anuncios para el estudiante ---
+    student_announcements = Announcement.query.filter(
+        (Announcement.target_role == 'Todos') | (Announcement.target_role == 'Estudiante')
+    ).order_by(Announcement.date_posted.desc()).all()
 
     current_year = datetime.now().year
     return render_template('estudiantes/student_dashboard.html', 

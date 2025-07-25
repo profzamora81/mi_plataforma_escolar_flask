@@ -9,22 +9,20 @@
         <p>Aún no tienes notas registradas para calcular un promedio general.</p>
     {% endif %}
 
-    <h2>Anuncios Importantes:</h2>
-    {% if relevant_announcements %}
-        <div style="border: 1px solid #ccc; padding: 15px; border-radius: 5px; background-color: #f9f9f9;">
-            {% for announcement in relevant_announcements %}
-                <div style="margin-bottom: 15px; border-bottom: 1px dashed #eee; padding-bottom: 10px;">
-                    <h3>{{ announcement.title }}</h3>
-                    <p>{{ announcement.content }}</p>
-                    <small>Publicado por {{ announcement.user.first_name }} {{ announcement.user.last_name }} el {{ announcement.date_posted.strftime('%d/%m/%Y a las %H:%M') }}</small>
-                    {% if not loop.last %} {# No añadir línea divisoria después del último anuncio #}
-                        <hr style="border-top: 1px solid #eee;">
-                    {% endif %}
-                </div>
-            {% endfor %}
-        </div>
+    <h2>Anuncios Importantes</h2>
+    {% if <student_announcements> %} {# Por ejemplo, admin_announcements #}
+        <ul>
+        {% for announcement in <student_announcements> %}
+            <li>
+                <h3>{{ announcement.title }}</h3>
+                <p>{{ announcement.content }}</p>
+                <small>Publicado por: {{ announcement.user.username }} el {{ announcement.date_posted.strftime('%d-%m-%Y %H:%M') }}</small>
+                <small>Dirigido a: {{ announcement.target_role }}</small>
+            </li>
+        {% endfor %}
+        </ul>
     {% else %}
-        <p>No hay anuncios importantes para ti en este momento.</p>
+        <p>No hay anuncios disponibles en este momento.</p>
     {% endif %}
 
     <h2>Tus Asignaturas con Notas:</h2>

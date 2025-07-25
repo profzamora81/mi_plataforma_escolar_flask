@@ -12,52 +12,25 @@ subject_grade_level_association = db.Table(
     db.Column('grade_level_id', db.Integer, db.ForeignKey('grade_level.id'), primary_key=True)
 )
 
-class User(UserMixin, db.Model):
+class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(64), unique=True, nullable=False)
+    username = db.Column(db.String(20), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
-    password_hash = db.Column(db.String(128))
-    role = db.Column(db.String(20), nullable=False) # 'Administrador', 'Profesor', 'Estudiante'
-    first_name = db.Column(db.String(64), nullable=False)
-    last_name = db.Column(db.String(64), nullable=False)
-
-    # Relaciones:
-    subjects_taught = db.relationship('Subject', backref='teacher_obj', lazy='dynamic', foreign_keys='Subject.teacher_id')
-    announcements_created = db.relationship('Announcement', backref='user', lazy='dynamic')
-    grades_received = db.relationship('Grade', backref='student', lazy='dynamic')
-    enrollments = db.relationship('Enrollment', backref='student_obj', lazy='dynamic')
-    
-    # NUEVAS RELACIONES: Solicitudes de cambio de notas
-    grade_change_requests_made = db.relationship('GradeChangeRequest', 
-                                                foreign_keys='GradeChangeRequest.requested_by_user_id',
-                                                backref='requested_by_user', 
-                                                lazy='dynamic')
-    grade_change_requests_approved = db.relationship('GradeChangeRequest', 
-                                                    foreign_keys='GradeChangeRequest.approved_by_user_id',
-                                                    backref='approved_by_user', 
-                                                    lazy='dynamic')
+    password = db.Column(db.String(60), nullable=False)
+    role = db.Column(db.String(20), nullable=False, default='Estudiante') # Roles: 'Estudiante', 'Profesor', 'Administrador'
+    first_name = db.Column(db.String(50), nullable=False)
+    last_name = db.Column(db.String(50), nullable=False)
 
     def set_password(self, password):
-        self.password_hash = generate_password_hash(password)
+        """Genera un hash de la contraseña y lo guarda."""
+        self.password = generate_password_hash(password).decode('utf-8')
 
     def check_password(self, password):
-        return check_password_hash(self.password_hash, password)
+        """Verifica si la contraseña proporcionada coincide con el hash almacenado."""
+        return check_password_hash(self.password, password)
 
     def __repr__(self):
-        return f'<User {self.username} ({self.role})>'
-
-class GradeLevel(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(64), unique=True, nullable=False)
-    description = db.Column(db.String(256))
-
-    subjects = db.relationship(
-        'Subject', secondary=subject_grade_level_association,
-        back_populates='grade_levels'
-    )
-
-    def __repr__(self):
-        return f'<GradeLevel {self.name}>'
+        return f"User('{self.username}', '{self.email}', '{self.role}')"
 
 class Subject(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -66,12 +39,12 @@ class Subject(db.Model):
     description = db.Column(db.Text)
     
     teacher_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    teacher_obj = db.relationship('User', backref='subjects_taught', lazy=True)
 
     grade_levels = db.relationship(
         'GradeLevel', secondary=subject_grade_level_association,
         back_populates='subjects'
     )
-    grades = db.relationship('Grade', backref='subject', lazy='dynamic')
     activity_configs = db.relationship('SubjectActivityConfig', backref='subject_obj', lazy='dynamic')
     enrollments = db.relationship('Enrollment', backref='subject_obj', lazy='dynamic')
 
@@ -84,6 +57,8 @@ class Grade(db.Model):
     subject_id = db.Column(db.Integer, db.ForeignKey('subject.id'), nullable=False)
     
     value = db.Column(db.Float, nullable=False)
+    description = db.Column(db.String(200), nullable=False)
+    date_posted = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     
     activity_name = db.Column(db.String(128), nullable=False) 
     unit_number = db.Column(db.String(20), nullable=False) 
@@ -94,7 +69,9 @@ class Grade(db.Model):
     # NUEVA RELACIÓN: Solicitudes de cambio para esta nota
     change_requests = db.relationship('GradeChangeRequest', backref='grade', lazy='dynamic')
 
-
+    student = db.relationship('User', backref='grades', lazy=True)
+    subject = db.relationship('Subject', backref='grades', lazy=True)
+    
     def __repr__(self):
         return f'<Grade {self.value} for {self.student.username} in {self.subject.name} - {self.activity_name} ({self.unit_number})>'
 
@@ -107,6 +84,8 @@ class Announcement(db.Model):
     
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     target_role = db.Column(db.String(20), nullable=False)
+
+    user = db.relationship('User', backref='announcements', lazy=True)
 
     def __repr__(self):
         return f'<Announcement {self.title} by {self.user.username}>'
@@ -158,5 +137,24 @@ class GradeChangeRequest(db.Model):
     approved_by_user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
     approval_date = db.Column(db.DateTime, nullable=True)
 
+    # ¡¡¡AÑADE ESTAS DOS LÍNEAS!!! Son las que faltan.
+    # Relación con el usuario que solicitó el cambio
+    requested_by = db.relationship('User', backref='grade_requests_made', lazy=True, foreign_keys=[requested_by_user_id])
+    # Relación con el usuario que aprobó/rechazó el cambio
+    approved_by = db.relationship('User', backref='grade_requests_approved', lazy=True, foreign_keys=[approved_by_user_id])
+    # La relación con el modelo Grade se maneja por backref='grade_obj' en el modelo Grade
+
     def __repr__(self):
         return f'<GradeChangeRequest ID:{self.id} Grade:{self.grade_id} Type:{self.request_type} Status:{self.status}>'
+    
+class GradeLevel(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(50), unique=True, nullable=False)
+
+    subjects = db.relationship(
+        'Subject', secondary=subject_grade_level_association,
+        back_populates='grade_levels'
+    )
+
+    def __repr__(self):
+        return f'<GradeLevel {self.name}>'    

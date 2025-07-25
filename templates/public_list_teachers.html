@@ -1,0 +1,48 @@
+{# templates/public_list_teachers.html #}
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>{{ title }}</h1>
+
+    <p>Conoce a los dedicados profesionales que forman parte de nuestro equipo docente.</p>
+    
+    {% if professors %}
+        <div class="table-responsive"> {# Opcional: Para tablas que se desbordan en pantallas pequeñas #}
+            <table class="table table-bordered table-striped mt-3">
+                <thead>
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Apellido</th>
+                        <th>Email</th>
+                        {# Puedes añadir más columnas aquí si el modelo User tiene esa relación y la quieres mostrar públicamente, por ejemplo: Asignaturas que imparte #}
+                        {# <th>Asignaturas Impartidas</th> #}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for professor in professors %}
+                        <tr>
+                            <td>{{ professor.first_name }}</td>
+                            <td>{{ professor.last_name }}</td>
+                            <td>{{ professor.email }}</td>
+                            {# Ejemplo para mostrar asignaturas si tienes una relación User-Subject #}
+                            {# <td>
+                                {% if professor.assigned_subjects %} {# Asumiendo que 'assigned_subjects' es un backref o relación en tu modelo User #}
+                                    {% for subject in professor.assigned_subjects %}
+                                        {{ subject.name }}{% if not loop.last %}, {% endif %}
+                                    {% endfor %}
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </td> #}
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <p>Actualmente no hay profesores registrados en la plataforma.</p>
+    {% endif %}
+
+    <p><a href="{{ url_for('home') }}" class="btn btn-secondary mt-3">Volver a Inicio</a></p>
+
+{% endblock %}
